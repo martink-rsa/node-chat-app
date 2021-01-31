@@ -42,9 +42,6 @@ const autoScroll = () => {
   if (containerHeight - newMessageHeight <= scrollOffset) {
     messages.scrollTop = messages.scrollHeight;
   }
-
-  console.log(newMessageStyles);
-  console.log(newMessageHeight);
 };
 
 // Normal message
