@@ -22,6 +22,8 @@ const io = socketio(server);
 const port = process.env.PORT || 3000;
 const publicDirectoryPath = path.join(__dirname, '../public');
 
+// Todo: Change server messages to their own message template
+
 app.use(express.static(publicDirectoryPath));
 
 io.on('connection', (socket) => {
@@ -42,7 +44,7 @@ io.on('connection', (socket) => {
 
     // First argument ('message') is name of event that is being emitted
     // Second parameter ('Welcome!') is data being emitted
-    socket.emit('message', generateMessage('Admin', 'Welcome!'));
+    socket.emit('message', generateMessage('Server', 'Welcome!'));
 
     // broadcast.emit.to will send the data to all clients in a room
     // except the client that triggered it
@@ -50,8 +52,13 @@ io.on('connection', (socket) => {
       .to(user.room)
       .emit(
         'message',
-        generateMessage('Admin', `${user.username} has joined ${user.room}`),
+        generateMessage('Server', `${user.username} has joined ${user.room}`),
       );
+
+    io.to(user.room).emit('roomData', {
+      room: user.room,
+      users: getUsersInRoom(user.room),
+    });
 
     // Calling the callback to let client know user was able to join
     callback();
@@ -103,8 +110,12 @@ io.on('connection', (socket) => {
     if (user) {
       io.to(user.room).emit(
         'message',
-        generateMessage('Admin', `${user.username} has left the room.`),
+        generateMessage('Server', `${user.username} has left the room.`),
       );
+      io.to(user.room).emit('roomData', {
+        room: user.room,
+        users: getUsersInRoom(user.room),
+      });
     }
   });
 });
