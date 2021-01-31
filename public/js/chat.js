@@ -14,19 +14,27 @@ const locationMessageTemplate = document.querySelector(
   '#location-message-template',
 ).innerHTML;
 
+// Options
+const { username, room } = Qs.parse(location.search, {
+  ignoreQueryPrefix: true,
+});
+
+// Normal message
 socket.on('message', (message) => {
-  console.log(message);
   const html = Mustache.render(chatMessageTemplate, {
+    username: message.username,
     createdAt: moment(message.createdAt).format('HH:mm:ss'),
     message: message.text,
   });
   messages.insertAdjacentHTML('beforeend', html);
 });
 
-socket.on('locationMessage', (location) => {
+// Location message
+socket.on('locationMessage', (message) => {
   const html = Mustache.render(locationMessageTemplate, {
-    location: location.text,
-    createdAt: moment(location.createdAt).format('HH:mm:ss'),
+    username: message.username,
+    location: message.text,
+    createdAt: moment(message.createdAt).format('HH:mm:ss'),
   });
   messages.insertAdjacentHTML('beforeend', html);
 });
@@ -70,4 +78,12 @@ locationButton.addEventListener('click', () => {
       console.log('Location shared');
     });
   });
+});
+
+socket.emit('join', { username, room }, (error) => {
+  //
+  if (error) {
+    alert(error);
+    location.href = '/';
+  }
 });
