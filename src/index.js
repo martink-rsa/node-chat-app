@@ -3,6 +3,10 @@ const http = require('http');
 const express = require('express');
 const socketio = require('socket.io');
 const Filter = require('bad-words');
+const {
+  generateMessage,
+  generateLocationMessage,
+} = require('./utils/messages');
 
 const app = express();
 const server = http.createServer(app);
@@ -17,12 +21,12 @@ app.use(express.static(publicDirectoryPath));
 io.on('connection', (socket) => {
   // First argument ('message') is name of event that is being emitted
   // Second parameter ('Welcome!') is data being emitted
-  socket.emit('message', 'Welcome!');
+  socket.emit('message', generateMessage('Welcome!'));
   console.log('New WebSocket connection');
 
   // broadcast.emit will send the data to all clients except the
   //    client that triggered it
-  socket.broadcast.emit('message', 'A new user has joined');
+  socket.broadcast.emit('message', generateMessage('A new user has joined!'));
 
   // Listen to the 'sendMessage' event that is being
   //    emitted by the front end. This message is then sent
@@ -34,7 +38,7 @@ io.on('connection', (socket) => {
       return callback('Profanity is not allowed');
     }
 
-    io.emit('message', message);
+    io.emit('message', generateMessage(message));
     // The callback will run when the message was delivered
     //    from the frontend script (sendMessage emitter)
     // It will send the arguments back to the sendMessage emitter
@@ -44,17 +48,18 @@ io.on('connection', (socket) => {
 
   socket.on('sendLocation', (location, callback) => {
     const { latitude, longitude } = location;
-
     io.emit(
-      'message',
-      `User location: https://google.com/maps?q=${latitude},${longitude}`,
+      'locationMessage',
+      generateLocationMessage(
+        `https://google.com/maps?q=${latitude},${longitude}`,
+      ),
     );
     callback();
   });
 
   // Send a message when a user disconnects
   socket.on('disconnect', () => {
-    io.emit('message', 'A user has disconnected');
+    io.emit('message', generateMessage('A user has disconnected'));
   });
 });
 
